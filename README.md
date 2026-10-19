@@ -2,22 +2,14 @@
 
 **Keep the continuous clear main shot between blurry sections.**
 
-Matthew Tavares's original `Clip.cpp` algorithm is the editing core. It checks
-Laplacian variance at half-second intervals, skips blurry footage and clear
-sections that are too brief, then keeps the first sustained clear shot until
-blur returns. The default blur threshold is **5** (intentionally tolerant).
+The Video Editor checks Laplacian variance at half-second intervals, skips blurry footage 
+and clear sections that are too brief, then keeps the first sustained clear shot 
+until blur returns. The default blur threshold is **5** (intentionally tolerant).
 Single-clip API analysis defaults to a four-second minimum; the automatic
 multi-clip flows use a one-second minimum so every qualifying upload can join
-the final edit. It does not rank isolated sharp frames or split the main shot
-into arbitrary highlights.
+the final edit.
 
-`Clip.cpp`, `Clip.h`, and `VideoCompiler.cpp` were restored from the original
-codebase at commit `d2b20e2`, with portability and boundary fixes described in
-[docs/original-algorithm.md](docs/original-algorithm.md). Both the desktop
-program and the JSON engine use this same `Clip` class. Python, FastAPI, SQL,
-Django, Flask, MCP, Docker, CI/CD, and AWS are supporting layers around it.
-
-## Original desktop workflow
+## Desktop workflow
 
 After building with CMake, run `./build/VideoTrimmer`. Create or load a text
 file whose first line is the clips directory and remaining lines are filenames.
@@ -91,34 +83,7 @@ uvicorn api.app.main:app --reload
 
 Keep this terminal running, then use one of the three interfaces below.
 
-### 1. Developer test page: FastAPI `/docs`
-
-Open `http://127.0.0.1:8000/docs`. This is FastAPI's interactive developer
-test page, not the customer-facing website. Use **Try it out** to upload a
-clip, copy its job ID, then call `analyze`, `export`, and download endpoints
-while inspecting their JSON responses.
-
-### Example single-clip API flow
-
-```bash
-# 1. Upload
-curl -F "file=@sample.mp4" http://127.0.0.1:8000/jobs
-
-# 2. Analyze (replace JOB_ID)
-curl -X POST http://127.0.0.1:8000/jobs/JOB_ID/analyze \
-  -H 'content-type: application/json' \
-  -d '{"min_clip_seconds":4,"max_total_duration_seconds":8,"blur_threshold":5}'
-
-# 3. Inspect the saved cut list
-curl http://127.0.0.1:8000/jobs/JOB_ID
-
-# 4. Render the approved decisions
-curl -X POST http://127.0.0.1:8000/jobs/JOB_ID/export \
-  -H 'content-type: application/json' \
-  -d '{"output_name":"highlight.mp4"}'
-```
-
-### 2. Browser website
+### 1. Browser website
 
 The Flask website is a small, functional browser client. It uploads one or
 more clips to FastAPI, automatically analyzes/trims/joins qualifying clips,
@@ -135,7 +100,7 @@ Open `http://127.0.0.1:8002/`, choose clips, optionally change the blur
 threshold or maximum length, and click **Edit automatically**. A threshold of
 **5** is the default; lower numbers allow more blur in the retained footage.
 
-### 3. Codex MCP
+### 2. Codex MCP
 
 The MCP server is a local `stdio` adapter over the FastAPI service. In a
 second terminal, with the FastAPI server from Quick start still running:
@@ -241,24 +206,6 @@ docker build -t ai-video-editor .
 ```
 
 GitHub Actions runs these checks on every push and pull request.
-
-## Delivery plan
-
-- **Sprint 1 — reliable editing core:** engine JSON contract, API job lifecycle,
-  SQLite persistence, and tests.
-- **Sprint 2 — delivery surfaces:** Django review/admin, Flask demo, MCP,
-  Docker Compose, AWS deployment, and durable media storage.
-
-Suggested GitHub issues are in [docs/backlog.md](docs/backlog.md).
-
-## Important limitations
-
-- This is an editing assistant, not a replacement for professional NLE tools.
-- OpenCV export writes video frames only; preserving/remixing audio is the next
-  production milestone and should use FFmpeg.
-- Selection uses the original blur state machine, not semantic understanding
-  of the action. Half-second sampling gives approximate blur boundaries;
-  scene or speech features must remain optional additions to this core.
 
 ## License
 
