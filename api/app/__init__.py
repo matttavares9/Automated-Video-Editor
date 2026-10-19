@@ -1,1 +1,1 @@
-"""AI Video Editor API package."""
+"""FastAPI Blur Trimmer API package."""

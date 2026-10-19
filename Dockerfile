@@ -17,10 +17,14 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY --from=build /app/build/video_engine /app/build/video_engine
 COPY api ./api
-COPY mcp_server ./mcp_server
 COPY django_admin ./django_admin
 COPY flask_dashboard ./flask_dashboard
-ENV PYTHONPATH=/app VIDEO_ENGINE_BIN=/app/build/video_engine DATA_DIR=/data
+COPY start-web.sh ./start-web.sh
+ENV PYTHONPATH=/app VIDEO_ENGINE_BIN=/app/build/video_engine DATA_DIR=/data API_BASE_URL=http://127.0.0.1:8001
 RUN mkdir -p /data
+RUN chmod +x /app/start-web.sh
 EXPOSE 8000
-CMD ["uvicorn", "api.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# The public listener is Flask.  FastAPI remains private to the container on
+# 127.0.0.1:8001 so browser requests never need Docker or a local install.
+# The stdio MCP adapter is deliberately excluded from this production image.
+CMD ["/app/start-web.sh"]

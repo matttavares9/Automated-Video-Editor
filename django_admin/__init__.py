@@ -1,1 +1,1 @@
-"""Django review interface for AI Video Editor."""
+"""Django review interface for FastAPI Blur Trimmer."""

@@ -1,5 +1,6 @@
 build/
 data/
+renders/
 *.db
 __pycache__/
 .pytest_cache/

@@ -20,8 +20,10 @@ Those files are restored at the repository root and compiled into both
 
 The original default minimum is four seconds; the maximum is eight seconds.
 Face-first adjustment remains optional and is limited to the selected shot.
-When a selected shot is longer than the maximum, the original random-length,
-centered trim remains in `Clip::Create`.
+The desktop `Clip::Create` retains its historical random centered trim. The
+web/API engine instead returns the full blur-bounded shot, then applies any
+requested output cap deterministically after selection so duration does not
+change blur detection.
 
 ## Portability and correctness changes
 

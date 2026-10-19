@@ -196,7 +196,7 @@ int main()
 		string filename; //Name of the file.
 
 		/*
-		* Gives user the option to create a text file containing data for the video editor.
+		* Gives user the option to create a text file containing data for the video trimmer.
 		* If user creates <C> the text file, they can add information for a directory and subsequent clip names.
 		* If user selects an existing <E> text file, they can use an previously created text file stored with video editing data.
 		* In the text file: First line is the path; all subsequent lines are video file names.

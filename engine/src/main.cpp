@@ -41,13 +41,16 @@ json analyze(const json& job) {
         min_clip <= 0 || max_total < min_clip || blur_threshold <= 0)
         throw std::runtime_error("Require positive blur_threshold and 0 < min_clip_seconds <= max_total_duration_seconds");
 
-    // Matthew's original Clip class owns selection. The JSON/API/agent layers
-    // expose its result; they must not replace it with ranked highlight windows.
+    // Matthew's original Clip class owns blur-boundary selection. Do not pass
+    // the requested output limit to Create: the original desktop helper makes
+    // a random centered trim when a shot exceeds that limit. Analysis must
+    // return the complete clear shot so the API can apply a deterministic
+    // output-duration cap after blur detection.
     int clip_id = 0;
     Clip clip(input_path, clip_id, "");
     clip.setFaceCascade(job.value("face_cascade_path", std::string()));
     clip.setBlurThreshold(blur_threshold);
-    clip.Create(max_total, min_clip);
+    clip.Create(clip.getLength(), min_clip);
 
     json samples = json::array();
     for (const auto& sample : clip.getBlurSamples()) {

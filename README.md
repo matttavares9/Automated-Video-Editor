@@ -106,7 +106,7 @@ The MCP server is a local `stdio` adapter over the FastAPI service. In a
 second terminal, with the FastAPI server from Quick start still running:
 
 ```bash
-cd /path/to/AI-Video-Editor
+cd /path/to/Automated-Video-Editor
 codex mcp add ai-video-editor \
   --env API_BASE_URL=http://127.0.0.1:8000 \
   -- "$PWD/.venv/bin/python" "$PWD/mcp_server/server.py"
@@ -154,9 +154,8 @@ JSON. `render.json` adds `output_path` and the accepted `cuts`. Optional
 A clear section shorter than the minimum produces an empty cut list, not an
 invented highlight. For footage with a roughly three-second clear section,
 explicitly use `"min_clip_seconds": 2`. The default remains four seconds.
-If the selected shot exceeds the maximum, the original centered trim with a
-random target length is retained. Sampling remains the original half-second
-cadence; `sample_interval_seconds` is no longer a selection setting.
+The API applies an exact centered duration cap to the selected clear shot.
+Sampling remains at half-second intervals.
 
 ## Django, Flask, and Docker
 
@@ -182,15 +181,11 @@ there is one job record and one source of editing decisions.
 ## AWS and CI/CD
 
 For AWS deployment, follow [aws/elastic-beanstalk/README.md](aws/elastic-beanstalk/README.md).
-The current Elastic Beanstalk environment runs the FastAPI/C++ container. For
-a shared production service, add S3 for original videos and exports, RDS
-PostgreSQL for jobs and decisions, authentication, and a hosted HTTPS MCP
-endpoint; local container storage is not durable across deploys. The
-GitHub Actions CI workflow tests the native core, Python API, Django, Flask,
-MCP package, and Docker image on every push and pull request. The separate AWS
-workflow is a template for publishing an immutable image to ECR and rolling a
-configured ECS service when `main` changes; configure its documented GitHub
-environment variables and OIDC role before enabling it.
+The Elastic Beanstalk environment exposes the Flask browser interface and keeps
+FastAPI and the C++ editor private inside the same container. The MCP adapter
+runs locally. CI tests the application on pushes and pull requests. The CD
+workflow deploys the tested main-branch commit to Elastic Beanstalk after CI
+succeeds; see the deployment guide for its AWS and GitHub configuration.
 
 The Elastic Beanstalk nginx configuration accepts uploads up to 100 MB. For
 larger production files, use direct-to-S3 multipart uploads instead of routing

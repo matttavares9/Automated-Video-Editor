@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(ai_video_editor_engine LANGUAGES CXX)
+project(fastapi_blur_trimmer_engine LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

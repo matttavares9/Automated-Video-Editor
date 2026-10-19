@@ -10,7 +10,7 @@ from .db import EditDecision, Job, SessionLocal, initialize_database
 from .engine import DATA_DIR, EngineError, run_engine
 from .models import AnalyzeRequest, CompilationResponse, CompileRequest, Cut, ExportRequest, JobResponse
 
-app = FastAPI(title="AI Video Editor API", version="0.1.0")
+app = FastAPI(title="FastAPI Blur Trimmer API", version="0.1.0")
 
 
 @app.on_event("startup")
@@ -77,19 +77,27 @@ def analyze_job(job_id: str, request: AnalyzeRequest, db: Session = Depends(get_
 @app.post("/compilations", response_model=CompilationResponse)
 def compile_jobs(request: CompileRequest, db: Session = Depends(get_db)):
     jobs = [fetch_job(job_id, db) for job_id in request.job_ids]
-    analysis_request = AnalyzeRequest(
-        min_clip_seconds=request.min_clip_seconds,
-        max_total_duration_seconds=request.max_total_duration_seconds,
-        blur_threshold=request.blur_threshold,
-    )
     sources, rendered_ids, skipped_ids = [], [], []
+    remaining_duration = request.max_total_duration_seconds
     try:
         for job in jobs:
+            # The maximum is for the finished compilation, not for every
+            # uploaded file. Pass the unspent portion to the deterministic
+            # post-selection cap so later uploads cannot exceed the total.
+            if remaining_duration + 1e-6 < request.min_clip_seconds:
+                skipped_ids.append(job.id)
+                continue
+            analysis_request = AnalyzeRequest(
+                min_clip_seconds=request.min_clip_seconds,
+                max_total_duration_seconds=remaining_duration,
+                blur_threshold=request.blur_threshold,
+            )
             analyze_and_save(job, analysis_request)
             cuts = [Cut(start_seconds=x.start_seconds, end_seconds=x.end_seconds, score=x.score, reason=x.reason) for x in job.decisions]
             if cuts:
                 sources.append({"input_path": job.source_path, "cuts": [cut.model_dump() for cut in cuts]})
                 rendered_ids.append(job.id)
+                remaining_duration -= sum(cut.end_seconds - cut.start_seconds for cut in cuts)
             else:
                 skipped_ids.append(job.id)
         if not sources:
@@ -111,8 +119,8 @@ def compile_jobs(request: CompileRequest, db: Session = Depends(get_db)):
 def analyze_and_save(job: Job, request: AnalyzeRequest) -> None:
     job.status, job.error = "analyzing", None
     analysis = run_engine("analyze", {"input_path": job.source_path, **request.model_dump()})
-    # The C++ core is the sole selector. The API only validates its result
-    # before saving it; web frameworks and agents never invent new cuts.
+    # The C++ core selects complete clear shots. The API only applies the
+    # requested deterministic duration cap before saving that selection.
     plan = validate_edit_plan(analysis, request.min_clip_seconds, request.max_total_duration_seconds)
     job.analysis, job.status = analysis, "analyzed"
     job.decisions.clear()
@@ -162,15 +170,27 @@ def download_compilation(output_name: str):
 
 
 def validate_edit_plan(analysis: dict, minimum: float, maximum: float) -> dict:
-    """Keep only C++ selections that satisfy the request's duration contract."""
+    """Cap C++ clear-shot selections deterministically without reselecting them."""
     source_duration = analysis.get("analysis", {}).get("duration_seconds")
     if source_duration is not None:
         minimum = min(minimum, source_duration)
-    approved, total = [], 0.0
-    for cut in analysis.get("cuts", []):
-        duration = cut["end_seconds"] - cut["start_seconds"]
-        if duration + 1e-6 < minimum or total + duration > maximum + 1e-6:
+    approved, remaining = [], maximum
+    for source_cut in analysis.get("cuts", []):
+        start, end = source_cut["start_seconds"], source_cut["end_seconds"]
+        duration = end - start
+        if duration + 1e-6 < minimum or remaining + 1e-6 < minimum:
             continue
-        approved.append(cut)
-        total += duration
+        kept_duration = min(duration, remaining)
+        # The clear shot is selected solely from blur boundaries. When a
+        # duration cap is necessary, retain an exact centered portion of that
+        # already-selected shot. This replaces Clip::Create's random trim.
+        if kept_duration + 1e-6 < duration:
+            trim_each_side = (duration - kept_duration) / 2
+            start, end = start + trim_each_side, end - trim_each_side
+        approved.append({
+            **source_cut,
+            "start_seconds": start,
+            "end_seconds": end,
+        })
+        remaining -= kept_duration
     return {"cuts": approved}

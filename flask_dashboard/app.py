@@ -17,8 +17,8 @@ def health():
 @app.get("/")
 def index():
     return render_template_string("""
-    <!doctype html><title>Automatic Video Editor</title>
-    <h1>Automatic Video Editor</h1>
+    <!doctype html><title>FastAPI Blur Trimmer</title>
+    <h1>FastAPI Blur Trimmer</h1>
     <p>Upload one or more clips. The original C++ algorithm automatically finds
     the sustained clear section in each qualifying clip, trims it, and joins
     the results.</p>
@@ -26,7 +26,7 @@ def index():
       <p><label>Clips <input name="files" type="file" accept="video/*" multiple required></label></p>
       <p><label>Blur threshold <input name="blur_threshold" type="number" value="5" min="0.1" max="1000" step="0.1"></label>
       <small>Lower allows more blur; 5 is the default.</small></p>
-      <p><label>Maximum edit length (seconds) <input name="max_total_duration_seconds" type="number" value="8" min="1" step="1"></label></p>
+      <p><label>Maximum combined edit length (seconds) <input name="max_total_duration_seconds" type="number" value="8" min="1" step="1"></label></p>
       <button type="submit">Edit automatically</button>
     </form>
     <p><small>This Flask page calls the same FastAPI service as the MCP tools; it has no separate editing algorithm.</small></p>
@@ -101,8 +101,8 @@ def download_compilation(output_name: str):
 
 def _result_page(message: str, status: int, download_url: str | None = None):
     return render_template_string("""
-    <!doctype html><title>Automatic Video Editor</title>
-    <h1>Automatic Video Editor</h1>
+    <!doctype html><title>FastAPI Blur Trimmer</title>
+    <h1>FastAPI Blur Trimmer</h1>
     <p>{{ message }}</p>
     {% if download_url %}<p><a href="{{ download_url }}">Download edited video</a></p>{% endif %}
     <p><a href="{{ url_for('index') }}">Edit more clips</a></p>

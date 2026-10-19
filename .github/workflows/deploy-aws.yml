@@ -1,38 +1,65 @@
-name: Deploy API to AWS
+name: Deploy to Elastic Beanstalk
 
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
-  workflow_dispatch:
 
 permissions:
   contents: read
   id-token: write
 
+concurrency:
+  group: elastic-beanstalk-production
+  cancel-in-progress: false
+
 jobs:
   deploy:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     environment: production
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - name: Verify release is current and contains the browser app
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          latest_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)"
+          test "$RELEASE_SHA" = "$latest_sha" || { echo 'A newer commit exists; skip this release.'; exit 1; }
+          test -f start-web.sh || { echo 'Missing browser application startup script.'; exit 1; }
+          grep -q 'start-web.sh' Dockerfile || { echo 'Dockerfile does not start the browser application.'; exit 1; }
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
-      - uses: aws-actions/amazon-ecr-login@v2
-        id: ecr
-      - name: Build and publish immutable image
-        env:
-          REGISTRY: ${{ steps.ecr.outputs.registry }}
-          REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ github.sha }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+      - name: Package committed application source
         run: |
-          docker build -t "$REGISTRY/$REPOSITORY:$IMAGE_TAG" .
-          docker tag "$REGISTRY/$REPOSITORY:$IMAGE_TAG" "$REGISTRY/$REPOSITORY:latest"
-          docker push "$REGISTRY/$REPOSITORY:$IMAGE_TAG"
-          docker push "$REGISTRY/$REPOSITORY:latest"
-      - name: Restart the ECS service
+          git archive --format=zip --output="$RUNNER_TEMP/release.zip" HEAD -- . ':(exclude)docker-compose.yml' ':(exclude).github'
+      - name: Deploy and verify Elastic Beanstalk
         env:
-          ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
-          ECS_SERVICE: ${{ vars.ECS_SERVICE }}
-        run: aws ecs update-service --cluster "$ECS_CLUSTER" --service "$ECS_SERVICE" --force-new-deployment
+          EB_APP: ${{ vars.EB_APPLICATION_NAME || 'ai-video-editor' }}
+          EB_ENV: ${{ vars.EB_ENVIRONMENT_NAME || 'ai-video-editor-dev' }}
+          EB_BUCKET: ${{ vars.EB_DEPLOY_BUCKET }}
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          : "${EB_APP:?Set EB_APPLICATION_NAME}" "${EB_ENV:?Set EB_ENVIRONMENT_NAME}" "${EB_BUCKET:?Set EB_DEPLOY_BUCKET}"
+          version="github-${RELEASE_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          key="releases/${version}.zip"
+          aws s3 cp "$RUNNER_TEMP/release.zip" "s3://${EB_BUCKET}/${key}"
+          aws elasticbeanstalk create-application-version --application-name "$EB_APP" --version-label "$version" --source-bundle "S3Bucket=${EB_BUCKET},S3Key=${key}"
+          aws elasticbeanstalk update-environment --application-name "$EB_APP" --environment-name "$EB_ENV" --version-label "$version"
+          aws elasticbeanstalk wait environment-updated --application-name "$EB_APP" --environment-names "$EB_ENV"
+          actual="$(aws elasticbeanstalk describe-environments --application-name "$EB_APP" --environment-names "$EB_ENV" --query 'Environments[0].VersionLabel' --output text)"
+          test "$actual" = "$version" || { echo 'Environment did not deploy the requested version.'; exit 1; }
+          cname="$(aws elasticbeanstalk describe-environments --application-name "$EB_APP" --environment-names "$EB_ENV" --query 'Environments[0].CNAME' --output text)"
+          curl --fail --silent --show-error --retry 5 --retry-delay 10 "http://${cname}/health"

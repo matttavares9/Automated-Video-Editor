@@ -1,10 +1,19 @@
-.git
-.github
-.venv
-.pytest_cache
-__pycache__
-build
-data
+# Elastic Beanstalk receives the production Dockerfile only.  Compose is a
+# local-development stack (Postgres, Django, FastAPI, and Flask) and would make
+# EB start the development services instead of the public Flask container.
+docker-compose.yml
+
+# Do not upload local build products, media, editor state, or VCS metadata.
+.git/
+.github/
+.venv/
+.pytest_cache/
+.elasticbeanstalk/app_versions/
+.elasticbeanstalk/logs/
+build/
+data/
+renders/
+__pycache__/
 *.db
 *.mp4
 .env

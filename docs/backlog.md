@@ -1,6 +1,6 @@
 # Starter backlog
 
-Create these as GitHub Issues and add them to a GitHub Project called **AI Video Editor**.
+Create these as GitHub Issues and add them to a GitHub Project called **FastAPI Blur Trimmer**.
 
 ## Sprint 1 — reliable editing core
 
