@@ -1,4 +1,4 @@
-# Automated Video Trimmer (C++/OpenCV)
+# FastAPI Blur Trimmer - An Automated Video Trimmer (C++/OpenCV)
 
 **Keep the continuous clear main shot between blurry sections.**
 
