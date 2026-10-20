@@ -1,26 +1,16 @@
 # Automated Video Editor: A Blur Trimming AI Tool
 
+A web-based and MCP-enabled application that automatically analyzes video footage and removes blurry or unwanted segments.
+
 <div align="center">
 <img align="center" src= https://github.com/user-attachments/assets/7657d0aa-566e-461d-9a42-360b1af48cae width="40%"/>
 </div>
 
+[🌐 Web Application]([http://ai-video-editor-dev.eba-h39e23yp.us-east-1.elasticbeanstalk.com)
+[🤖 MCP Server](#mcp-server-setup)
 
-**Keep the continuous clear main shot between blurry sections.**
+## Demo
 
-The Video Editor checks Laplacian variance at half-second intervals, skips blurry footage 
-and clear sections that are too brief, then keeps the first sustained clear shot 
-until blur returns. The default blur threshold is **5** (intentionally tolerant).
-Single-clip API analysis defaults to a four-second minimum; the automatic
-multi-clip flows use a one-second minimum so every qualifying upload can join
-the final edit.
-
-## Desktop workflow
-
-After building with CMake, run `./build/VideoTrimmer`. Create or load a text
-file whose first line is the clips directory and remaining lines are filenames.
-The original Display / Edit / Render workflow exports `Test.avi` in the working
-directory. Optional face-first selection uses a Haar cascade supplied through
-`FACE_CASCADE_PATH`; without it, selection uses blur boundaries only.
 
 ## What it does
 
