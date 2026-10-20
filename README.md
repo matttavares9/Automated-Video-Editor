@@ -6,7 +6,8 @@ A web-based and MCP-enabled application that automatically analyzes video footag
 <img align="center" src= https://github.com/user-attachments/assets/7657d0aa-566e-461d-9a42-360b1af48cae width="40%"/>
 </div>
 
-[🌐 Web Application]([http://ai-video-editor-dev.eba-h39e23yp.us-east-1.elasticbeanstalk.com)
+[🌐 Web Application](http://ai-video-editor-dev.eba-h39e23yp.us-east-1.elasticbeanstalk.com)
+
 [🤖 MCP Server](#mcp-server-setup)
 
 ## Demo
