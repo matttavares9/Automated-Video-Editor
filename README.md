@@ -14,14 +14,12 @@
   <img src="https://github.com/user-attachments/assets/7657d0aa-566e-461d-9a42-360b1af48cae" width="40%" alt="Automated Video Editor logo" />
 </div>
 
-**Keep the continuous clear main shot between blurry sections.** The editor
-uses an original C++/OpenCV algorithm to find and trim a sustained clear shot
-from video clips, then joins qualifying clips into an MP4.
+Keep the continuous clear main shot between blurry sections.
 
-## Live App + MCP Setup Links
+- **[🌐 Web Browser](http://ai-video-editor-dev.eba-h39e23yp.us-east-1.elasticbeanstalk.com/)**
+- **[🤖 MCP Server](#mcp-server-setup).
 
-- [Open the live web application](http://ai-video-editor-dev.eba-h39e23yp.us-east-1.elasticbeanstalk.com)
-- [Set up the MCP server](#mcp-server-setup)
+Originally developed to automate repetitive editing tasks in a professional video production environment, significantly cutting hours worked and reducing manual editing time by approximately **60%**. The original C++ computer vision application was later extended into a web-based system with REST APIs, database persistence, cloud deployment, and MCP integration.
 
 ## Demo GIF
 
@@ -31,31 +29,13 @@ A 20-second before-and-after showcase using the application with real footage.
 
 ## Features
 
-- Detects blur using the original C++/OpenCV algorithm and retains the first sustained clear shot.
+- Uses C++/OpenCV face and blur detection algorithms, retaining the first *sustained clear shot.
 - Uploads and combines multiple qualifying clips into one MP4.
-- Provides a browser app, FastAPI endpoints, and a Codex MCP interface.
+- Provides a browser app with functionality to edit blur threshold and video length with a direct download.
+- Connect to MCP server with Codex/Claude Code, and edit videos with natural-language instructions.
 - Saves job status and edit decisions in SQLite locally or PostgreSQL in deployment.
 
-## Architecture
-
-```mermaid
-flowchart LR
-  Browser[Browser user] --> Flask[Flask web app]
-  Browser -->|API testing| API[FastAPI]
-  Codex[Codex / MCP client] --> MCP[MCP server]
-  Script[REST client] --> API
-  Flask -->|REST| API
-  MCP -->|REST| API
-  API --> DB[(SQLite / PostgreSQL)]
-  API --> Engine[C++ / OpenCV engine]
-  Engine -->|Analysis and rendered video| API
-```
-
-The Flask app and MCP server call FastAPI; they do not implement separate
-editing logic. FastAPI manages uploads and jobs, while the C++ engine detects
-blur and renders the selected footage. See [the architecture notes](docs/architecture.md).
-
-## Quick Start
+##🚀 Quick Start
 
 ### Requirements
 
@@ -83,7 +63,19 @@ export VIDEO_ENGINE_BIN="$PWD/build/video_engine"
 uvicorn api.app.main:app --reload
 ```
 
-## MCP Server Setup
+##🤖 MCP Server Setup
+
+The MCP server provides seven tools that allow AI agents such as Codex to upload, analyze, trim, and compile videos through natural-language requests.
+
+| Tool | Functionality |
+|------|---------------|
+| `upload_video` | Upload a local video file and create a job |
+| `analyze_video` | Detect clear footage with configurable thresholds and duration |
+| `adjust_edit` | Reanalyze with simpler blur and clip-length preferences |
+| `get_job_status` | Retrieve job status, analysis, and editing decisions |
+| `render_video` | Export previously selected cuts |
+| `compile_videos` | Analyze and combine already-uploaded clips |
+| `edit_videos` | Complete upload-to-final-video workflow in one call |
 
 With FastAPI running on port 8000, register the local MCP adapter with Codex:
 
@@ -101,20 +93,38 @@ Use edit_videos to edit these clips for me:
 /absolute/path/clip-two.mov
 ```
 
-## Testing & Deployment
+## Architecture
 
-Run the Python and C++ checks:
+```mermaid
+flowchart LR
+  Browser[Browser user] --> Flask[Flask web app]
+  Browser -->|API testing| API[FastAPI]
+  Codex[Codex / MCP client] --> MCP[MCP server]
+  Script[REST client] --> API
+  Flask -->|REST| API
+  MCP -->|REST| API
+  API --> DB[(SQLite / PostgreSQL)]
+  API --> Engine[C++ / OpenCV engine]
+  Engine -->|Analysis and rendered video| API
+```
 
-```bash
+The Flask app and MCP server call FastAPI; they do not implement separate
+editing logic. FastAPI manages uploads and jobs, while the C++ engine detects
+blur and renders the selected footage.
+
+## Testing \& Deployment
+
+GitHub Actions runs **CI** on every push and pull request. It installs dependencies, runs the API and C++ tests, and builds the Docker image to catch problems before merging.
+
+**CD** runs after a successful CI check on `main`. It packages that commit, deploys it to AWS Elastic Beanstalk, and checks that the deployed app responds. Deployment requires the AWS role and GitHub environment settings described in the deployment guide (aws/elastic-beanstalk/README.md).
+
+To run the main checks locally:
+
+```
 pytest api/tests -q
 cmake -S . -B build && cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 ```
-
-GitHub Actions runs tests and builds the Docker image on pushes and pull
-requests. For AWS Elastic Beanstalk deployment, see the
-[deployment guide](aws/elastic-beanstalk/README.md). The browser interface is
-public; the FastAPI service and C++ engine remain private inside the container.
 
 ## License
 
