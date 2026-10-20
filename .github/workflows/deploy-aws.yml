@@ -82,8 +82,8 @@ jobs:
             version_status="$(aws elasticbeanstalk describe-application-versions --application-name "$EB_APP" --version-labels "$version" --query 'ApplicationVersions[0].Status' --output text)"
             echo "Elastic Beanstalk bundle validation: ${version_status}"
             case "$version_status" in
-              Processed) break ;;
-              Failed)
+              Processed|PROCESSED) break ;;
+              Failed|FAILED)
                 aws elasticbeanstalk describe-events --application-name "$EB_APP" --max-records 20 --query 'Events[?Severity==`ERROR`].[EventDate,Message]' --output table
                 exit 1
                 ;;
