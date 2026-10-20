@@ -1,4 +1,4 @@
-# Automated Video Editor: Blur Trimming AI Tool
+# Automated Video Editor: A Blur Trimming AI Tool
 
 <div align="center">
 <img align="center" src= https://github.com/user-attachments/assets/7657d0aa-566e-461d-9a42-360b1af48cae width="40%"/>
