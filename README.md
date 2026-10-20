@@ -35,7 +35,9 @@ A 20-second before-and-after showcase using the application with real footage.
 - Connect to MCP server with Codex/Claude Code, and edit videos with natural-language instructions.
 - Saves job status and edit decisions in SQLite locally or PostgreSQL in deployment.
 
-##🚀 Quick Start
+## Quick Start
+
+**🚀 Get started with the Automated Video Editor in minutes!**
 
 ### Requirements
 
@@ -63,7 +65,7 @@ export VIDEO_ENGINE_BIN="$PWD/build/video_engine"
 uvicorn api.app.main:app --reload
 ```
 
-##🤖 MCP Server Setup
+## MCP Server Setup
 
 The MCP server provides seven tools that allow AI agents such as Codex to upload, analyze, trim, and compile videos through natural-language requests.
 
