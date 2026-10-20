@@ -31,6 +31,8 @@ h1 { margin: 0; color: #034ab7; font-size: clamp(25px, 5vw, 39px); font-weight: 
 .control-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .control label { font-size: 10px; font-weight: 700; letter-spacing: .055em; }
 .readout { color: var(--blue-dark); font-size: 12px; font-weight: 700; white-space: nowrap; }
+.readout-input { width: 82px; padding: 5px 7px; border: 1px solid var(--line); border-radius: 6px; background: #f9fafc; color: var(--blue-dark); font: 700 12px 'Montserrat', sans-serif; text-align: right; }
+.readout-input:focus { outline: 2px solid #4c82c366; border-color: var(--blue); }
 input[type=range] { width: 100%; margin: 16px 0 4px; accent-color: var(--blue); cursor: pointer; }
 .hint { margin: 4px 0 0; color: var(--muted); font-size: 9px; }
 button, .action { display: block; width: 100%; padding: 15px 20px; border: 0; border-radius: 10px; background: var(--blue-dark); color: #fff; font: 700 12px 'Montserrat', sans-serif; letter-spacing: .12em; text-align: center; text-decoration: none; text-transform: uppercase; cursor: pointer; transition: background .18s ease, transform .18s ease; }
@@ -78,14 +80,13 @@ def index():
         </label>
         <div class="controls">
           <section class="control">
-            <div class="control-head"><label for="blur-range">BLUR THRESHOLD</label><output class="readout" id="blur-readout">5</output></div>
-            <input id="blur-range" type="range" min="0" max="1000" step="any" value="424.742" aria-describedby="blur-hint">
-            <input id="blur_threshold" name="blur_threshold" type="hidden" value="5">
+            <div class="control-head"><label for="blur-value">BLUR THRESHOLD</label><input class="readout-input" id="blur-value" name="blur_threshold" type="number" min="0.1" max="10" step="0.1" value="5" aria-label="BLUR THRESHOLD VALUE"></div>
+            <input id="blur-range" type="range" min="0.1" max="10" step="0.1" value="5" aria-label="BLUR THRESHOLD SLIDER" aria-describedby="blur-hint">
             <p class="hint" id="blur-hint">LOWER VALUES ALLOW MORE BLUR · DEFAULT 5</p>
           </section>
           <section class="control">
-            <div class="control-head"><label for="duration-range">MAXIMUM COMBINED EDIT LENGTH</label><output class="readout" id="duration-readout">8 SEC</output></div>
-            <input id="duration-range" name="max_total_duration_seconds" type="range" min="1" max="600" step="1" value="8">
+            <div class="control-head"><label for="duration-value">MAXIMUM COMBINED EDIT LENGTH</label><div><input class="readout-input" id="duration-value" name="max_total_duration_seconds" type="number" min="1" max="600" step="1" value="8" aria-label="MAXIMUM COMBINED EDIT LENGTH IN SECONDS"> <span class="readout">SEC</span></div></div>
+            <input id="duration-range" type="range" min="1" max="600" step="1" value="8" aria-label="MAXIMUM COMBINED EDIT LENGTH SLIDER">
             <p class="hint">SELECT THE MAXIMUM TOTAL VIDEO LENGTH</p>
           </section>
         </div>
@@ -95,23 +96,24 @@ def index():
     </main>
     <script>
       const blurSlider = document.getElementById('blur-range');
-      const blurField = document.getElementById('blur_threshold');
-      const blurReadout = document.getElementById('blur-readout');
+      const blurInput = document.getElementById('blur-value');
       const durationSlider = document.getElementById('duration-range');
-      const durationReadout = document.getElementById('duration-readout');
+      const durationInput = document.getElementById('duration-value');
       const fileInput = document.getElementById('clips');
       const fileList = document.getElementById('file-list');
-      function updateBlur() {
-        const raw = 0.1 * Math.pow(10000, Number(blurSlider.value) / 1000);
-        const value = Number(raw.toPrecision(3));
-        blurField.value = value;
-        blurReadout.value = String(value);
-        blurReadout.textContent = String(value);
-      }
-      blurSlider.addEventListener('input', updateBlur);
+      blurSlider.addEventListener('input', () => { blurInput.value = blurSlider.value; });
+      blurInput.addEventListener('input', () => {
+        if (blurInput.value === '') return;
+        blurSlider.value = String(Math.min(10, Math.max(0.1, Number(blurInput.value))));
+        blurInput.value = blurSlider.value;
+      });
       durationSlider.addEventListener('input', () => {
-        durationReadout.value = durationSlider.value + ' SEC';
-        durationReadout.textContent = durationSlider.value + ' SEC';
+        durationInput.value = durationSlider.value;
+      });
+      durationInput.addEventListener('input', () => {
+        if (durationInput.value === '') return;
+        durationSlider.value = String(Math.min(600, Math.max(1, Number(durationInput.value))));
+        durationInput.value = durationSlider.value;
       });
       fileInput.addEventListener('change', () => {
         fileList.textContent = Array.from(fileInput.files, file => file.name).join(' · ');
