@@ -1,4 +1,4 @@
-# Automated Video Editor: A Blur Trimming AI Tool
+# Automated Video Editor: Blur Trimming AI Tool
 
 A web-based and MCP-enabled application that automatically analyzes video footage and removes blurry or unwanted segments.
 
@@ -7,7 +7,6 @@ A web-based and MCP-enabled application that automatically analyzes video footag
 </div>
 
 [🌐 Web Application](http://ai-video-editor-dev.eba-h39e23yp.us-east-1.elasticbeanstalk.com)
-
 [🤖 MCP Server](#mcp-server-setup)
 
 ## Demo
