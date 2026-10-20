@@ -1,6 +1,4 @@
-# Elastic Beanstalk receives the production Dockerfile only.  Compose is a
-# local-development stack (Postgres, Django, FastAPI, and Flask) and would make
-# EB start the development services instead of the public Flask container.
+# Elastic Beanstalk uses the production Dockerfile; Compose is for local development.
 docker-compose.yml
 
 # Do not upload local build products, media, editor state, or VCS metadata.

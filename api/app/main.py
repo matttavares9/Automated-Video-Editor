@@ -10,7 +10,7 @@ from .db import EditDecision, Job, SessionLocal, initialize_database
 from .engine import DATA_DIR, EngineError, run_engine
 from .models import AnalyzeRequest, CompilationResponse, CompileRequest, Cut, ExportRequest, JobResponse
 
-app = FastAPI(title="FastAPI Blur Trimmer API", version="0.1.0")
+app = FastAPI(title="Automated Video Editor API", version="0.1.0")
 
 
 @app.on_event("startup")

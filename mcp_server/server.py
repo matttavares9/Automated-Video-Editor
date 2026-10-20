@@ -8,7 +8,7 @@ from mcp.server.fastmcp import FastMCP
 
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000").rstrip("/")
-mcp = FastMCP("FastAPI Blur Trimmer")
+mcp = FastMCP("Automated Video Editor")
 
 
 @mcp.tool()
