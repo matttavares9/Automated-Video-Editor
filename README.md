@@ -1,16 +1,30 @@
-# Automated Video Editor: Blur Trimming AI Tool
+# Automated Video Editor
 
-A web-based and MCP-enabled application that automatically analyzes video footage and removes blurry or unwanted segments.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Open Source](https://img.shields.io/badge/Open%20Source-❤️-brightgreen.svg)](https://github.com/matttavares9/AI-Video-Editor)
+![C++17](https://img.shields.io/badge/C++-17-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
+![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonwebservices&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![MCP](https://img.shields.io/badge/MCP-Server-6C47FF?style=for-the-badge)
+
 
 <div align="center">
 <img align="center" src= https://github.com/user-attachments/assets/7657d0aa-566e-461d-9a42-360b1af48cae width="40%"/>
 </div>
 
+A web-based and MCP-enabled application that automatically analyzes video footage and removes blurry or unwanted segments.
+
 [🌐 Web Application](http://ai-video-editor-dev.eba-h39e23yp.us-east-1.elasticbeanstalk.com)
 [🤖 MCP Server](#mcp-server-setup)
 
 ## Demo
+A 20 second **before and after** showcase using the application with real footage.
 
+<img width="800" height="305" alt="ezgif-2162bf6fe3576ed8" src="https://github.com/user-attachments/assets/4a2c0cf5-d20c-4fb3-bb47-afdb7db7e0f1" />
 
 ## What it does
 
