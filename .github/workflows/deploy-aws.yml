@@ -21,6 +21,7 @@ jobs:
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: production
     steps:
       - uses: actions/checkout@v4
@@ -41,9 +42,29 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
-      - name: Package committed application source
+      - uses: aws-actions/amazon-ecr-login@v2
+        id: registry
+      - name: Build and publish the deployment image
+        env:
+          REGISTRY: ${{ steps.registry.outputs.registry }}
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          git archive --format=zip --output="$RUNNER_TEMP/release.zip" HEAD -- . ':(exclude)docker-compose.yml' ':(exclude).github'
+          set -euo pipefail
+          image="${REGISTRY}/automated-video-editor:${RELEASE_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          docker build --platform linux/amd64 -t "$image" .
+          docker push "$image"
+          echo "DEPLOY_IMAGE=$image" >> "$GITHUB_ENV"
+      - name: Package the prebuilt image for Elastic Beanstalk
+        run: |
+          set -euo pipefail
+          bundle="$RUNNER_TEMP/deployment"
+          mkdir -p "$bundle"
+          jq -n --arg image "$DEPLOY_IMAGE" '{AWSEBDockerrunVersion:"1",Image:{Name:$image,Update:"true"},Ports:[{ContainerPort:"8000"}]}' > "$bundle/Dockerrun.aws.json"
+          for directory in .ebextensions .platform; do
+            if [ -d "$directory" ]; then cp -R "$directory" "$bundle/"; fi
+          done
+          cd "$bundle"
+          zip -r "$RUNNER_TEMP/release.zip" .
       - name: Deploy and verify Elastic Beanstalk
         env:
           EB_APP: ${{ vars.EB_APPLICATION_NAME || 'ai-video-editor' }}
@@ -57,6 +78,7 @@ jobs:
           key="releases/${version}.zip"
           aws s3 cp "$RUNNER_TEMP/release.zip" "s3://${EB_BUCKET}/${key}"
           aws elasticbeanstalk create-application-version --application-name "$EB_APP" --version-label "$version" --source-bundle "S3Bucket=${EB_BUCKET},S3Key=${key}"
+          aws elasticbeanstalk wait environment-updated --application-name "$EB_APP" --environment-names "$EB_ENV"
           aws elasticbeanstalk update-environment --application-name "$EB_APP" --environment-name "$EB_ENV" --version-label "$version"
           aws elasticbeanstalk wait environment-updated --application-name "$EB_APP" --environment-names "$EB_ENV"
           actual="$(aws elasticbeanstalk describe-environments --application-name "$EB_APP" --environment-names "$EB_ENV" --query 'Environments[0].VersionLabel' --output text)"
