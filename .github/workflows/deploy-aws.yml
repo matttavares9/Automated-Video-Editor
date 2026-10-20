@@ -77,11 +77,28 @@ jobs:
           version="github-${RELEASE_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           key="releases/${version}.zip"
           aws s3 cp "$RUNNER_TEMP/release.zip" "s3://${EB_BUCKET}/${key}"
-          aws elasticbeanstalk create-application-version --application-name "$EB_APP" --version-label "$version" --source-bundle "S3Bucket=${EB_BUCKET},S3Key=${key}"
+          aws elasticbeanstalk create-application-version --application-name "$EB_APP" --version-label "$version" --source-bundle "S3Bucket=${EB_BUCKET},S3Key=${key}" --process
+          for attempt in $(seq 1 24); do
+            version_status="$(aws elasticbeanstalk describe-application-versions --application-name "$EB_APP" --version-labels "$version" --query 'ApplicationVersions[0].Status' --output text)"
+            echo "Elastic Beanstalk bundle validation: ${version_status}"
+            case "$version_status" in
+              Processed) break ;;
+              Failed)
+                aws elasticbeanstalk describe-events --application-name "$EB_APP" --max-records 20 --query 'Events[?Severity==`ERROR`].[EventDate,Message]' --output table
+                exit 1
+                ;;
+              *) sleep 5 ;;
+            esac
+          done
+          test "$version_status" = Processed || { echo 'Timed out waiting for Elastic Beanstalk bundle validation.'; exit 1; }
           aws elasticbeanstalk wait environment-updated --application-name "$EB_APP" --environment-names "$EB_ENV"
           aws elasticbeanstalk update-environment --application-name "$EB_APP" --environment-name "$EB_ENV" --version-label "$version"
           aws elasticbeanstalk wait environment-updated --application-name "$EB_APP" --environment-names "$EB_ENV"
           actual="$(aws elasticbeanstalk describe-environments --application-name "$EB_APP" --environment-names "$EB_ENV" --query 'Environments[0].VersionLabel' --output text)"
-          test "$actual" = "$version" || { echo 'Environment did not deploy the requested version.'; exit 1; }
+          test "$actual" = "$version" || {
+            echo "Environment deployed ${actual}; expected ${version}. Recent Elastic Beanstalk errors:"
+            aws elasticbeanstalk describe-events --environment-name "$EB_ENV" --max-records 20 --query 'Events[?Severity==`ERROR`].[EventDate,Message]' --output table
+            exit 1
+          }
           cname="$(aws elasticbeanstalk describe-environments --application-name "$EB_APP" --environment-names "$EB_ENV" --query 'Environments[0].CNAME' --output text)"
           curl --fail --silent --show-error --retry 5 --retry-delay 10 "http://${cname}/health"
