@@ -90,7 +90,7 @@ jobs:
               *) sleep 5 ;;
             esac
           done
-          test "$version_status" = Processed || { echo 'Timed out waiting for Elastic Beanstalk bundle validation.'; exit 1; }
+          case "$version_status" in Processed|PROCESSED) ;; *) echo 'Timed out waiting for Elastic Beanstalk bundle validation.'; exit 1 ;; esac
           aws elasticbeanstalk wait environment-updated --application-name "$EB_APP" --environment-names "$EB_ENV"
           aws elasticbeanstalk update-environment --application-name "$EB_APP" --environment-name "$EB_ENV" --version-label "$version"
           aws elasticbeanstalk wait environment-updated --application-name "$EB_APP" --environment-names "$EB_ENV"
