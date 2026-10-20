@@ -17,7 +17,7 @@
 Keep the continuous clear main shot between blurry sections.
 
 - **[🌐 Web Browser](http://ai-video-editor-dev.eba-h39e23yp.us-east-1.elasticbeanstalk.com/)**
-- **[🤖 MCP Server](#mcp-server-setup).
+- **[🤖 MCP Server](#mcp-server-setup)**.
 
 Originally developed to automate repetitive editing tasks in a professional video production environment, significantly cutting hours worked and reducing manual editing time by approximately **60%**. The original C++ computer vision application was later extended into a web-based system with REST APIs, database persistence, cloud deployment, and MCP integration.
 
