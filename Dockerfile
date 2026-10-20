@@ -17,7 +17,6 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY --from=build /app/build/video_engine /app/build/video_engine
 COPY api ./api
-COPY django_admin ./django_admin
 COPY flask_dashboard ./flask_dashboard
 COPY start-web.sh ./start-web.sh
 ENV PYTHONPATH=/app VIDEO_ENGINE_BIN=/app/build/video_engine DATA_DIR=/data API_BASE_URL=http://127.0.0.1:8001

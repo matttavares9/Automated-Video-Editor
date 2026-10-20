@@ -18,8 +18,6 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run API tests
         run: pytest api/tests -q
-      - name: Validate Django review application
-        run: python django_admin/manage.py check
       - name: Validate Flask dashboard
         run: python -c "from flask_dashboard.app import app; assert app.test_client().get('/health').status_code == 200"
       - name: Validate MCP adapter

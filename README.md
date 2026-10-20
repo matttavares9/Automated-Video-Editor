@@ -51,7 +51,6 @@ flowchart LR
   D --> E
   M[MCP server] --> API
   F[Flask demo] --> API
-  J[Django review/admin] --> DB
 ```
 
 The same diagram is available in [docs/architecture.md](docs/architecture.md).
@@ -166,26 +165,22 @@ explicitly use `"min_clip_seconds": 2`. The default remains four seconds.
 The API applies an exact centered duration cap to the selected clear shot.
 Sampling remains at half-second intervals.
 
-## Django, Flask, and Docker
+## Flask and Docker
 
 ```bash
 docker build -t ai-video-editor .
 docker run --rm -p 8000:8000 -v "$PWD/data:/data" ai-video-editor
 ```
 
-For the complete local stack—FastAPI, PostgreSQL, Django review/admin, and the
-small Flask dashboard—run:
+For the complete local stack—FastAPI, PostgreSQL, and the small Flask
+dashboard—run:
 
 ```bash
 docker compose up --build
 ```
 
 - FastAPI developer test page: `http://127.0.0.1:8000/docs`
-- Django review/admin: `http://127.0.0.1:8001/`
 - Flask browser website: `http://127.0.0.1:8002/`
-
-Django's models are intentionally read-only views of the FastAPI SQL tables;
-there is one job record and one source of editing decisions.
 
 ## AWS and CI/CD
 

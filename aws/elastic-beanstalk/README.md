@@ -4,8 +4,8 @@ This repository deploys its Dockerized **Flask browser interface** on **AWS
 Elastic Beanstalk**. The Flask process is public on port 8000 and calls a
 FastAPI/C++ editing service bound privately inside the same container on port
 8001. Docker Compose is for local development; for production, deploy the API
-image to ECS Fargate and keep Django/Flask as separate services only when
-those interfaces need to be public.
+image to ECS Fargate and keep the Flask browser interface as a separate
+service only when it needs to be public.
 
 The Codex MCP adapter is intentionally local-only. It is neither started nor
 included in the Elastic Beanstalk image.

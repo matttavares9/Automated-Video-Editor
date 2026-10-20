@@ -44,9 +44,8 @@ median-threshold and ranked three-second highlight algorithms have been removed.
 ## Wrapper responsibilities
 
 FastAPI invokes the C++ engine, validates duration constraints, and stores its
-decisions. Django reads those records for review, Flask calls the same REST
-API for a small demo dashboard, and MCP exposes that API. None selects
-replacement footage.
+decisions. Flask calls the same REST API for a small demo dashboard, and MCP
+exposes that API. Neither selects replacement footage.
 
 ## Regression coverage
 

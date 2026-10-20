@@ -11,7 +11,6 @@ flowchart TD
   API -->|validated C++ cuts| Jobs
   API -->|JSON render spec| Engine
   Engine --> Export[MP4 export]
-  Django[Django review + admin] --> Jobs
   Flask[Flask local demo] -->|REST| API
   MCP[MCP server] -->|REST| API
   S3[S3 media storage] -. production .-> API
@@ -26,7 +25,6 @@ flowchart TD
 - **FastAPI:** upload validation, job lifecycle, SQL persistence, and the API
   contract shared with Flask and MCP. It validates, but never replaces, the
   C++-selected cut.
-- **Django:** read-only job review and Django Admin on the same SQL tables.
 - **Flask:** a deliberately small local/demo dashboard that calls FastAPI.
 - **MCP:** a thin client-facing adapter; it invokes REST rather than duplicating
   business logic.
