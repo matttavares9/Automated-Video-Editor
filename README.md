@@ -47,6 +47,8 @@ A 20-second before-and-after showcase using the application with real footage.
 Start the browser app and its local database:
 
 ```bash
+git clone https://github.com/matttavares9/Automated-Video-Editor.git
+cd Automated-Video-Editor
 docker compose up --build
 ```
 
