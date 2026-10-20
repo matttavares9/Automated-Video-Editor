@@ -2,8 +2,8 @@ FROM python:3.12-slim AS build
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential cmake libopencv-dev nlohmann-json3-dev && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY CMakeLists.txt ./
-COPY Clip.cpp Clip.h VideoCompiler.cpp ./
-COPY engine ./engine
+COPY src ./src
+COPY tests ./tests
 # Build sequentially so compilation leaves memory available on t3.micro.
 RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --parallel 1 && ctest --test-dir build --output-on-failure
 

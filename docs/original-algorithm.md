@@ -1,7 +1,8 @@
 # Original editing algorithm
 
-The core comes from Matthew Tavares's `Clip.cpp`, `Clip.h`, and
-`VideoCompiler.cpp` at commit `8b6c90b` (before the platform refactor).
+The core comes from Matthew Tavares's `src/core/Clip.cpp`,
+`src/core/Clip.h`, and `src/desktop/VideoCompiler.cpp` at commit `8b6c90b`
+(before the platform refactor).
 Those files are restored at the repository root and compiled into both
 `VideoTrimmer` and the headless `video_engine` through the `clip_core` library.
 
